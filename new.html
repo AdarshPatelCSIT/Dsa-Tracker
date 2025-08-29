@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Text/Image/Word/Compress - engineering_rule</title>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-pdfmake/2.2.0/html-to-pdfmake.min.js"></script>
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #e9eef6;
+      --card: #e9eef6;
+      --shadow-dark: rgba(163,177,198,0.9);
+      --shadow-light: rgba(255,255,255,1);
+      --accent-1: #2b7bff;
+      --accent-2: #ff2b6d;
+    }
+
+    *{box-sizing: border-box}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#eef3fb 0%, #e2eaf6 100%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:30px;
+    }
+
+    .container{
+      width:100%;
+      max-width:1100px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:24px;
+      align-items:start;
+    }
+
+    .brand-box{
+      grid-column: 1 / -1;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+    }
+
+    .brand{
+      font-weight:700;
+      letter-spacing:2px;
+      color:#444;
+      font-size:18px;
+    }
+
+    .title{
+      font-size:28px;
+      font-weight:600;
+      background-image: linear-gradient(90deg,var(--accent-1),var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      transition: transform .25s ease;
+    }
+
+    .title:hover{transform: scale(1.02)}
+
+    .card{
+      background: var(--card);
+      border-radius:18px;
+      padding:18px;
+      box-shadow: 10px 10px 24px var(--shadow-dark), -10px -10px 24px var(--shadow-light);
+      transform-style: preserve-3d;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .card:active{transform: translateY(2px)}
+
+    .card h3{margin:0 0 8px 0}
+    .card p{margin:0 0 12px 0;color:#555}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      cursor:pointer;
+      padding:10px 14px;
+      border-radius:12px;
+      border:none;
+      font-weight:600;
+      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+      background:var(--card);
+    }
+    .btn:active{box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light)}
+
+    textarea{width:100%;min-height:220px;border-radius:12px;padding:14px;border:none;resize:vertical;box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);background:var(--card);font-size:15px}
+    input[type=file]{font-size:14px}
+    label.file-label{display:inline-block;padding:10px 12px;border-radius:10px;cursor:pointer}
+
+    .row{display:flex;gap:12px;align-items:center}
+
+    /* responsive */
+    @media (max-width:900px){
+      .container{grid-template-columns:1fr}
+    }
+
+    /* small helper */
+    .muted{color:#666;font-size:13px}
+
+    .range{width:140px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand-box">
+      <div class="brand">engineering_rule</div>
+      <div class="title">Text to PDF Converter • Image to PDF • Compress Image • Word to PDF</div>
+    </div>
+
+    <!-- Text to PDF -->
+    <div class="card" id="text-card">
+      <h3>Text to PDF</h3>
+      <p class="muted">Paste long text (10–20 pages supported). Click convert.</p>
+      <textarea id="text-input" placeholder="Paste / type text here...\n(Use the sample texts you tested earlier)"></textarea>
+      <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn" onclick="generateTextPDF()">Convert Text → PDF</button>
+        <button class="btn" onclick="fillSample()">Load 10-page sample</button>
+        <select id="fontSize" style="padding:8px;border-radius:8px;border:none;box-shadow:6px 6px 12px var(--shadow-dark),-6px -6px 12px var(--shadow-light);background:var(--card)">
+          <option value="12">Font 12</option>
+          <option value="11">Font 11</option>
+          <option value="14">Font 14</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Image to PDF -->
+    <div class="card" id="image-card">
+      <h3>Image to PDF</h3>
+      <p class="muted">Select one or more images (JPG/PNG). Each image becomes a page.</p>
+      <input id="imageInput" type="file" accept="image/*" multiple>
+      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="generateImagePDF()">Convert Images → PDF</button>
+        <label class="file-label btn" onclick="document.getElementById('imageInput').click()">Choose Images</label>
+        <div class="muted">Scale width:</div>
+        <input id="imgWidth" class="range" type="number" value="500" min="200" max="1200">
+      </div>
+    </div>
+
+    <!-- Compress Image -->
+    <div class="card" id="compress-card">
+      <h3>Compress Image</h3>
+      <p class="muted">Upload an image; reduce quality/size and download compressed image.</p>
+      <input id="compressInput" type="file" accept="image/*">
+      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <div class="row">
+          <label class="muted">Quality:</label>
+          <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
+          <span id="qVal">0.8</span>
+        </div>
+        <button class="btn" onclick="compressImage()">Compress & Download</button>
+      </div>
+      <p class="muted" id="compResult"></p>
+    </div>
+
+    <!-- Word to PDF -->
+    <div class="card" id="word-card">
+      <h3>Word (.docx) to PDF</h3>
+      <p class="muted">Upload a .docx file. (Note: .doc is not supported.)</p>
+      <input id="docxInput" type="file" accept=".docx">
+      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="convertDocxToPdf()">Convert .docx → PDF</button>
+        <label class="muted">Preview size</label>
+        <select id="docFont">
+          <option value="12">12pt</option>
+          <option value="11">11pt</option>
+          <option value="14">14pt</option>
+        </select>
+      </div>
+      <p class="muted">Conversion uses mammoth.js to extract content and html-to-pdfmake to turn it into PDF.</p>
+    </div>
+
+  </div>
+
+<script>
+  // Text to PDF
+  function generateTextPDF(){
+    const txt = document.getElementById('text-input').value.trim();
+    if(!txt){alert('Please add some text first.');return}
+    const fontSize = parseInt(document.getElementById('fontSize').value || 12);
+    const docDefinition = {
+      content: [ { text: txt, fontSize: fontSize } ],
+      header: { text: 'Text to PDF Converter - engineering_rule', alignment:'center', fontSize:10, margin:[0,8,0,8] },
+      footer: function(currentPage, pageCount){ return { text: currentPage + ' / ' + pageCount, alignment:'center', fontSize:10, margin:[0,6,0,6] } },
+      pageMargins:[40,60,40,60]
+    };
+    pdfMake.createPdf(docDefinition).download('text.pdf');
+  }
+
+  function fillSample(){
+    const para = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus suscipit urna a bibendum porta, lacus augue ullamcorper lectus, eu porta turpis lectus sit amet felis. Suspendisse potenti. Sed dictum sapien in orci ultrices, eu faucibus magna fermentum. Proin ac sem vitae libero dictum pharetra. Etiam malesuada arcu id augue ullamcorper, nec dictum justo vehicula. Vestibulum eget semper turpis. Ut blandit sem vitae lectus porta luctus. Proin euismod velit ut diam euismod tincidunt.`;
+    let out = '';
+    for(let i=0;i<12;i++) out += '\n\n' + para;
+    document.getElementById('text-input').value = out;
+  }
+
+  // Image to PDF
+  function generateImagePDF(){
+    const input = document.getElementById('imageInput');
+    const files = input.files;
+    if(!files.length){alert('Please select at least one image');return}
+    const width = parseInt(document.getElementById('imgWidth').value) || 500;
+
+    let promises = [];
+    for(let i=0;i<files.length;i++){
+      promises.push(new Promise((res,rej)=>{
+        const reader = new FileReader();
+        reader.onload = e=> res(e.target.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(files[i]);
+      }));
+    }
+
+    Promise.all(promises).then(dataUrls=>{
+      const content = dataUrls.map((d,idx)=>({ image: d, width: width, margin:[0,10,0,10], pageBreak: (idx<dataUrls.length-1)?'after':undefined }));
+      const docDefinition = { content: content, pageMargins:[40,60,40,60], footer: function(c,p){return { text: c + ' / ' + p, alignment:'center', fontSize:10}} };
+      pdfMake.createPdf(docDefinition).download('images.pdf');
+    }).catch(err=>{console.error(err);alert('Error reading images')});
+  }
+
+  // Compress Image
+  const qSlider = document.getElementById('quality');
+  const qVal = document.getElementById('qVal');
+  qSlider.addEventListener('input', ()=> qVal.textContent = qSlider.value);
+
+  function compressImage(){
+    const f = document.getElementById('compressInput').files[0];
+    if(!f){alert('Please select an image to compress');return}
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const canvas = document.createElement('canvas');
+        // scale down if large
+        const maxDim = 1600;
+        let w = img.width, h = img.height;
+        if(Math.max(w,h) > maxDim){
+          const ratio = maxDim / Math.max(w,h);
+          w = Math.round(w*ratio); h = Math.round(h*ratio);
+        }
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        const quality = parseFloat(document.getElementById('quality').value) || 0.8;
+        canvas.toBlob(function(blob){
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          const ext = f.type.includes('png')?'.png':'.jpg';
+          a.download = 'compressed' + ext;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          document.getElementById('compResult').textContent = `Compressed image created. Size: ${(blob.size/1024).toFixed(1)} KB`;
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = ()=> alert('Invalid image file');
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(f);
+  }
+
+  // Word (.docx) to PDF using mammoth + html-to-pdfmake
+  function convertDocxToPdf(){
+    const f = document.getElementById('docxInput').files[0];
+    if(!f){alert('Please select a .docx file');return}
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      const arrayBuffer = ev.target.result;
+      mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+        .then(function(result){
+          const html = result.value; // generated html
+          // convert html to pdfmake format
+          const doc = htmlToPdfmake(html, {window:window});
+          const fontSize = parseInt(document.getElementById('docFont').value || 12);
+          const docDefinition = { content: doc, styles: { normal:{fontSize: fontSize} }, pageMargins:[40,60,40,60], footer: function(c,p){return {text: c + ' / ' + p, alignment:'center', fontSize:10}} };
+          pdfMake.createPdf(docDefinition).download('document.pdf');
+        })
+        .catch(function(err){ console.error(err); alert('Error converting .docx file') });
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+</script>
+</body>
+</html>
