@@ -1,298 +1,624 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Text/Image/Word/Compress - engineering_rule</title>
-
-  <!-- Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-pdfmake/2.2.0/html-to-pdfmake.min.js"></script>
-  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
-
-  <style>
-    :root{
-      --bg: #e9eef6;
-      --card: #e9eef6;
-      --shadow-dark: rgba(163,177,198,0.9);
-      --shadow-light: rgba(255,255,255,1);
-      --accent-1: #2b7bff;
-      --accent-2: #ff2b6d;
-    }
-
-    *{box-sizing: border-box}
-    body{
-      margin:0;
-      background: linear-gradient(180deg,#eef3fb 0%, #e2eaf6 100%);
-      font-family: Inter, Arial, Helvetica, sans-serif;
-      display:flex;
-      min-height:100vh;
-      align-items:center;
-      justify-content:center;
-      padding:30px;
-    }
-
-    .container{
-      width:100%;
-      max-width:1100px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:24px;
-      align-items:start;
-    }
-
-    .brand-box{
-      grid-column: 1 / -1;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-    }
-
-    .brand{
-      font-weight:700;
-      letter-spacing:2px;
-      color:#444;
-      font-size:18px;
-    }
-
-    .title{
-      font-size:28px;
-      font-weight:600;
-      background-image: linear-gradient(90deg,var(--accent-1),var(--accent-2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      transition: transform .25s ease;
-    }
-
-    .title:hover{transform: scale(1.02)}
-
-    .card{
-      background: var(--card);
-      border-radius:18px;
-      padding:18px;
-      box-shadow: 10px 10px 24px var(--shadow-dark), -10px -10px 24px var(--shadow-light);
-      transform-style: preserve-3d;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-
-    .card:active{transform: translateY(2px)}
-
-    .card h3{margin:0 0 8px 0}
-    .card p{margin:0 0 12px 0;color:#555}
-
-    .controls{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{
-      cursor:pointer;
-      padding:10px 14px;
-      border-radius:12px;
-      border:none;
-      font-weight:600;
-      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-      background:var(--card);
-    }
-    .btn:active{box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light)}
-
-    textarea{width:100%;min-height:220px;border-radius:12px;padding:14px;border:none;resize:vertical;box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);background:var(--card);font-size:15px}
-    input[type=file]{font-size:14px}
-    label.file-label{display:inline-block;padding:10px 12px;border-radius:10px;cursor:pointer}
-
-    .row{display:flex;gap:12px;align-items:center}
-
-    /* responsive */
-    @media (max-width:900px){
-      .container{grid-template-columns:1fr}
-    }
-
-    /* small helper */
-    .muted{color:#666;font-size:13px}
-
-    .range{width:140px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>365-Day DSA & SQL Planner</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+    header { background: #007bff; color: white; padding: 1rem; text-align: center; }
+    .container { display: flex; flex-direction: row; padding: 1rem; gap: 2rem; }
+    .planner, .graph { background: white; padding: 1rem; border-radius: 8px; flex: 1; max-height: 80vh; overflow-y: auto; }
+    .day { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #ddd; }
+    .day.completed { background: #d4edda; }
+    .day.in-progress { background: #fff3cd; }
+    button { padding: 0.3rem 0.5rem; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px; }
+    button.complete { background: #28a745; color: white; }
+    button.in-progress { background: #ffc107; color: black; }
+    canvas { max-width: 100%; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="brand-box">
-      <div class="brand">engineering_rule</div>
-      <div class="title">Text to PDF Converter • Image to PDF • Compress Image • Word to PDF</div>
+<header>
+    <h1>365-Day DSA & SQL Planner</h1>
+</header>
+<div class="container">
+    <div class="planner">
+        <h2>Daily Topics</h2>
+        <div id="days"></div>
     </div>
-
-    <!-- Text to PDF -->
-    <div class="card" id="text-card">
-      <h3>Text to PDF</h3>
-      <p class="muted">Paste long text (10–20 pages supported). Click convert.</p>
-      <textarea id="text-input" placeholder="Paste / type text here...\n(Use the sample texts you tested earlier)"></textarea>
-      <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;align-items:center">
-        <button class="btn" onclick="generateTextPDF()">Convert Text → PDF</button>
-        <button class="btn" onclick="fillSample()">Load 10-page sample</button>
-        <select id="fontSize" style="padding:8px;border-radius:8px;border:none;box-shadow:6px 6px 12px var(--shadow-dark),-6px -6px 12px var(--shadow-light);background:var(--card)">
-          <option value="12">Font 12</option>
-          <option value="11">Font 11</option>
-          <option value="14">Font 14</option>
-        </select>
-      </div>
+    <div class="graph">
+        <h2>Progress Graph</h2>
+        <canvas id="progressChart"></canvas>
     </div>
-
-    <!-- Image to PDF -->
-    <div class="card" id="image-card">
-      <h3>Image to PDF</h3>
-      <p class="muted">Select one or more images (JPG/PNG). Each image becomes a page.</p>
-      <input id="imageInput" type="file" accept="image/*" multiple>
-      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <button class="btn" onclick="generateImagePDF()">Convert Images → PDF</button>
-        <label class="file-label btn" onclick="document.getElementById('imageInput').click()">Choose Images</label>
-        <div class="muted">Scale width:</div>
-        <input id="imgWidth" class="range" type="number" value="500" min="200" max="1200">
-      </div>
-    </div>
-
-    <!-- Compress Image -->
-    <div class="card" id="compress-card">
-      <h3>Compress Image</h3>
-      <p class="muted">Upload an image; reduce quality/size and download compressed image.</p>
-      <input id="compressInput" type="file" accept="image/*">
-      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <div class="row">
-          <label class="muted">Quality:</label>
-          <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
-          <span id="qVal">0.8</span>
-        </div>
-        <button class="btn" onclick="compressImage()">Compress & Download</button>
-      </div>
-      <p class="muted" id="compResult"></p>
-    </div>
-
-    <!-- Word to PDF -->
-    <div class="card" id="word-card">
-      <h3>Word (.docx) to PDF</h3>
-      <p class="muted">Upload a .docx file. (Note: .doc is not supported.)</p>
-      <input id="docxInput" type="file" accept=".docx">
-      <div style="display:flex;gap:12px;margin-top:12px;align-items:center;flex-wrap:wrap">
-        <button class="btn" onclick="convertDocxToPdf()">Convert .docx → PDF</button>
-        <label class="muted">Preview size</label>
-        <select id="docFont">
-          <option value="12">12pt</option>
-          <option value="11">11pt</option>
-          <option value="14">14pt</option>
-        </select>
-      </div>
-      <p class="muted">Conversion uses mammoth.js to extract content and html-to-pdfmake to turn it into PDF.</p>
-    </div>
-
-  </div>
-
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Text to PDF
-  function generateTextPDF(){
-    const txt = document.getElementById('text-input').value.trim();
-    if(!txt){alert('Please add some text first.');return}
-    const fontSize = parseInt(document.getElementById('fontSize').value || 12);
-    const docDefinition = {
-      content: [ { text: txt, fontSize: fontSize } ],
-      header: { text: 'Text to PDF Converter - engineering_rule', alignment:'center', fontSize:10, margin:[0,8,0,8] },
-      footer: function(currentPage, pageCount){ return { text: currentPage + ' / ' + pageCount, alignment:'center', fontSize:10, margin:[0,6,0,6] } },
-      pageMargins:[40,60,40,60]
-    };
-    pdfMake.createPdf(docDefinition).download('text.pdf');
-  }
+const daysContainer = document.getElementById('days');
 
-  function fillSample(){
-    const para = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus suscipit urna a bibendum porta, lacus augue ullamcorper lectus, eu porta turpis lectus sit amet felis. Suspendisse potenti. Sed dictum sapien in orci ultrices, eu faucibus magna fermentum. Proin ac sem vitae libero dictum pharetra. Etiam malesuada arcu id augue ullamcorper, nec dictum justo vehicula. Vestibulum eget semper turpis. Ut blandit sem vitae lectus porta luctus. Proin euismod velit ut diam euismod tincidunt.`;
-    let out = '';
-    for(let i=0;i<12;i++) out += '\n\n' + para;
-    document.getElementById('text-input').value = out;
-  }
+// 365-Day DSA + SQL Topics
+const topics = [
+    {day:1,topic:'Java refresher – variables, loops, conditions'},
+    {day:2,topic:'Java methods, functions, return types'},
+    {day:3,topic:'Java OOP basics – classes, objects'},
+    {day:4,topic:'Arrays – declaration, traversal'},
+    {day:5,topic:'Arrays – insertion, deletion'},
+    {day:6,topic:'Strings – basics, concatenation'},
+    {day:7,topic:'Strings – substring, comparison'},
+    {day:8,topic:'Strings – string manipulation problems'},
+    {day:9,topic:'Linked List – basics, node structure'},
+    {day:10,topic:'Linked List – insertion/deletion'},
+    {day:11,topic:'Linked List – traversal and search'},
+    {day:12,topic:'Stacks – array implementation'},
+    {day:13,topic:'Stacks – push/pop operations'},
+    {day:14,topic:'Stacks – simple problems'},
+    {day:15,topic:'Queues – array and linked list implementation'},
+    {day:16,topic:'Queues – circular queue'},
+    {day:17,topic:'Queues – basic problems'},
+    {day:18,topic:'SQL basics – SELECT, FROM, WHERE'},
+    {day:19,topic:'SQL – ORDER BY, LIMIT, DISTINCT'},
+    {day:20,topic:'SQL – Aggregate functions (COUNT, SUM, AVG, MIN, MAX)'},
+    {day:21,topic:'SQL – Simple JOINs (INNER, LEFT, RIGHT)'},
+    {day:22,topic:'SQL – Filtering with HAVING and GROUP BY'},
+    {day:23,topic:'SQL – Subqueries basics'},
+    {day:24,topic:'SQL – Nested subqueries'},
+    {day:25,topic:'SQL – Simple practice problems'},
+    {day:26,topic:'Java – recursion basics'},
+    {day:27,topic:'Java – recursive array problems'},
+    {day:28,topic:'Java – recursion with strings'},
+    {day:29,topic:'Java – recursion problems'},
+    {day:30,topic:'Review all topics, mini test'},
+    {day:31, topic:'Bubble Sort'}, 
+{day:32, topic:'Selection Sort'}, 
+{day:33, topic:'Insertion Sort'}, 
+{day:34, topic:'Merge Sort'}, 
+{day:35, topic:'Quick Sort'}, 
+{day:36, topic:'Linear Search'}, 
+{day:37, topic:'Binary Search'}, 
+{day:38, topic:'Recursive Binary Search'}, 
+{day:39, topic:'HashMap basics'}, 
+{day:40, topic:'HashSet and frequency count'}, 
+{day:41, topic:'Hashing problems – counting duplicates'}, 
+{day:42, topic:'Hashing – two sum problem'}, 
+{day:43, topic:'SQL – joins practice problems'}, 
+{day:44, topic:'SQL – window functions introduction'}, 
+{day:45, topic:'SQL – ROW_NUMBER, RANK, DENSE_RANK'}, 
+{day:46, topic:'SQL – LEAD, LAG'}, 
+{day:47, topic:'SQL – CTE basics (WITH clause)'}, 
+{day:48, topic:'SQL – Subqueries & CTE practice'}, 
+{day:49, topic:'SQL – Advanced join practice'}, 
+{day:50, topic:'Review – sorting & searching'}, 
+{day:51, topic:'Arrays – two pointer technique'}, 
+{day:52, topic:'Arrays – sliding window'}, 
+{day:53, topic:'Strings – pattern matching'}, 
+{day:54, topic:'Strings – substring problems'}, 
+{day:55, topic:'Recursion – backtracking basics'}, 
+{day:56, topic:'Backtracking – N-Queens'}, 
+{day:57, topic:'Backtracking – Sudoku Solver'}, 
+{day:58, topic:'Backtracking – Word Search'}, 
+{day:59, topic:'Mini review + problem set'}, 
+{day:60, topic:'Mock test'}, 
 
-  // Image to PDF
-  function generateImagePDF(){
-    const input = document.getElementById('imageInput');
-    const files = input.files;
-    if(!files.length){alert('Please select at least one image');return}
-    const width = parseInt(document.getElementById('imgWidth').value) || 500;
+{day:61, topic:'Binary Tree – traversal (preorder)'},
+{day:62, topic:'Binary Tree – traversal (inorder)'},
+{day:63, topic:'Binary Tree – traversal (postorder)'},
+{day:64, topic:'Binary Tree – height and depth'},
+{day:65, topic:'Binary Tree – leaf nodes'},
+{day:66, topic:'Binary Search Tree – insertion'},
+{day:67, topic:'Binary Search Tree – deletion'},
+{day:68, topic:'Binary Search Tree – search'},
+{day:69, topic:'Graph – adjacency matrix & list'},
+{day:70, topic:'Graph – BFS'},
+{day:71, topic:'Graph – DFS'},
+{day:72, topic:'Graph – shortest path (Dijkstra)'},
+{day:73, topic:'Graph – topological sort'},
+{day:74, topic:'Graph – connected components'},
+{day:75, topic:'Heap – min heap'},
+{day:76, topic:'Heap – max heap'},
+{day:77, topic:'Heap – heap operations and problems'},
+{day:78, topic:'SQL – stored procedures basics'},
+{day:79, topic:'SQL – functions and procedures'},
+{day:80, topic:'SQL – transactions and ACID properties'},
 
-    let promises = [];
-    for(let i=0;i<files.length;i++){
-      promises.push(new Promise((res,rej)=>{
-        const reader = new FileReader();
-        reader.onload = e=> res(e.target.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(files[i]);
-      }));
+// Dynamic Programming Phase
+{day:81, topic:'DP – Fibonacci sequence'},
+{day:82, topic:'DP – 0/1 Knapsack problem'},
+{day:83, topic:'DP – Unbounded Knapsack'},
+{day:84, topic:'DP – grid based problems'},
+{day:85, topic:'DP – Longest Common Subsequence'},
+{day:86, topic:'DP – Longest Increasing Subsequence'},
+{day:87, topic:'DP – Minimum Edit Distance'},
+{day:88, topic:'DP – DP + Backtracking'},
+{day:89, topic:'DP – Space optimization techniques'},
+{day:90, topic:'DP – Hard problems set 1'},
+{day:91, topic:'DP – Hard problems set 2'},
+{day:92, topic:'DP – Tree DP'},
+{day:93, topic:'DP – Mixed problems review'},
+{day:94, topic:'Review – DP key patterns'},
+{day:95, topic:'Tries – basics & insertion'},
+{day:96, topic:'Tries – prefix search problems'},
+{day:97, topic:'Segment Tree – basics'},
+{day:98, topic:'Segment Tree – range queries'},
+{day:99, topic:'Binary Indexed Tree (Fenwick)'},
+{day:100, topic:'Graph advanced – Bellman-Ford'},
+{day:101, topic:'Graph advanced – Floyd-Warshall'},
+{day:102, topic:'Graph advanced – Strongly Connected Components'},
+{day:103, topic:'Greedy algorithms – basics'},
+{day:104, topic:'Greedy algorithms – problems set 1'},
+{day:105, topic:'Greedy algorithms – problems set 2'},
+{day:106, topic:'SQL – window functions practice'},
+{day:107, topic:'SQL – CTE advanced practice'},
+{day:108, topic:'SQL – complex joins practice'},
+{day:109, topic:'SQL – rank and partition problems'},
+{day:110, topic:'SQL – mock practice dataset queries'},
+
+// Repeat similar pattern to fill Days 111–365:
+// Trees, Graphs, DP advanced, Greedy, Tries, Segment Trees, BIT, SQL advanced topics, mock interviews, review, contest simulations, and final consolidation.  
+
+// Example placeholders for remaining days:
+{day:111, topic:'Mixed problem set review'},
+{day:112, topic:'Mock contest 1'},
+{day:113, topic:'Mock contest 2'},
+{day:114, topic:'Mock contest 3'},
+{day:115, topic:'Weak topic review 1'},
+{day:116, topic:'Weak topic review 2'},
+{day:117, topic:'Weak topic review 3'},
+{day:118, topic:'LeetCode top problems 1'},
+{day:119, topic:'LeetCode top problems 2'},
+{day:120, topic:'LeetCode top problems 3'},
+{day:31, topic:'Bubble Sort'},
+{day:32, topic:'Selection Sort'},
+{day:33, topic:'Insertion Sort'},
+{day:34, topic:'Merge Sort'},
+{day:35, topic:'Quick Sort'},
+{day:36, topic:'Linear Search'},
+{day:37, topic:'Binary Search'},
+{day:38, topic:'Recursive Binary Search'},
+{day:39, topic:'HashMap basics'},
+{day:40, topic:'HashSet and frequency count'},
+{day:41, topic:'Hashing problems – counting duplicates'},
+{day:42, topic:'Hashing – two sum problem'},
+{day:43, topic:'SQL – joins practice problems'},
+{day:44, topic:'SQL – window functions introduction'},
+{day:45, topic:'SQL – ROW_NUMBER, RANK, DENSE_RANK'},
+{day:46, topic:'SQL – LEAD, LAG'},
+{day:47, topic:'SQL – CTE basics (WITH clause)'},
+{day:48, topic:'SQL – Subqueries & CTE practice'},
+{day:49, topic:'SQL – Advanced join practice'},
+{day:50, topic:'Review – sorting & searching'},
+{day:51, topic:'Arrays – two pointer technique'},
+{day:52, topic:'Arrays – sliding window'},
+{day:53, topic:'Strings – pattern matching'},
+{day:54, topic:'Strings – substring problems'},
+{day:55, topic:'Recursion – backtracking basics'},
+{day:56, topic:'Backtracking – N-Queens'},
+{day:57, topic:'Backtracking – Sudoku Solver'},
+{day:58, topic:'Backtracking – Word Search'},
+{day:59, topic:'Mini review + problem set'},
+{day:60, topic:'Mock test'},
+
+// Trees and Graphs
+{day:61, topic:'Binary Tree – traversal (preorder)'},
+{day:62, topic:'Binary Tree – traversal (inorder)'},
+{day:63, topic:'Binary Tree – traversal (postorder)'},
+{day:64, topic:'Binary Tree – height and depth'},
+{day:65, topic:'Binary Tree – leaf nodes'},
+{day:66, topic:'Binary Search Tree – insertion'},
+{day:67, topic:'Binary Search Tree – deletion'},
+{day:68, topic:'Binary Search Tree – search'},
+{day:69, topic:'Graph – adjacency matrix & list'},
+{day:70, topic:'Graph – BFS'},
+{day:71, topic:'Graph – DFS'},
+{day:72, topic:'Graph – shortest path (Dijkstra)'},
+{day:73, topic:'Graph – topological sort'},
+{day:74, topic:'Graph – connected components'},
+{day:75, topic:'Heap – min heap'},
+{day:76, topic:'Heap – max heap'},
+{day:77, topic:'Heap – heap operations and problems'},
+{day:78, topic:'SQL – stored procedures basics'},
+{day:79, topic:'SQL – functions and procedures'},
+{day:80, topic:'SQL – transactions and ACID properties'},
+
+// Dynamic Programming
+{day:81, topic:'DP – Fibonacci sequence'},
+{day:82, topic:'DP – 0/1 Knapsack problem'},
+{day:83, topic:'DP – Unbounded Knapsack'},
+{day:84, topic:'DP – grid based problems'},
+{day:85, topic:'DP – Longest Common Subsequence'},
+{day:86, topic:'DP – Longest Increasing Subsequence'},
+{day:87, topic:'DP – Minimum Edit Distance'},
+{day:88, topic:'DP – DP + Backtracking'},
+{day:89, topic:'DP – Space optimization techniques'},
+{day:90, topic:'DP – Hard problems set 1'},
+{day:91, topic:'DP – Hard problems set 2'},
+{day:92, topic:'DP – Tree DP'},
+{day:93, topic:'DP – Mixed problems review'},
+{day:94, topic:'Review – DP key patterns'},
+
+// Advanced Data Structures
+{day:95, topic:'Tries – basics & insertion'},
+{day:96, topic:'Tries – prefix search problems'},
+{day:97, topic:'Segment Tree – basics'},
+{day:98, topic:'Segment Tree – range queries'},
+{day:99, topic:'Binary Indexed Tree (Fenwick)'},
+{day:100, topic:'Graph advanced – Bellman-Ford'},
+{day:101, topic:'Graph advanced – Floyd-Warshall'},
+{day:102, topic:'Graph advanced – Strongly Connected Components'},
+{day:103, topic:'Greedy algorithms – basics'},
+{day:104, topic:'Greedy algorithms – problems set 1'},
+{day:105, topic:'Greedy algorithms – problems set 2'},
+{day:106, topic:'SQL – window functions practice'},
+{day:107, topic:'SQL – CTE advanced practice'},
+{day:108, topic:'SQL – complex joins practice'},
+{day:109, topic:'SQL – rank and partition problems'},
+{day:110, topic:'SQL – mock practice dataset queries'},
+
+// Mock contests & review
+{day:111, topic:'Mixed problem set review'},
+{day:112, topic:'Mock contest 1'},
+{day:113, topic:'Mock contest 2'},
+{day:114, topic:'Mock contest 3'},
+{day:115, topic:'Weak topic review 1'},
+{day:116, topic:'Weak topic review 2'},
+{day:117, topic:'Weak topic review 3'},
+{day:118, topic:'LeetCode top problems 1'},
+{day:119, topic:'LeetCode top problems 2'},
+{day:120, topic:'LeetCode top problems 3'},
+{day:121, topic:'DP – Advanced combinatorial problems'},
+{day:122, topic:'DP – DP + graphs'},
+{day:123, topic:'Greedy advanced problems'},
+{day:124, topic:'Graph – minimum spanning tree (Kruskal)'},
+{day:125, topic:'Graph – minimum spanning tree (Prim)'},
+{day:126, topic:'Tries – autocomplete and dictionary problems'},
+{day:127, topic:'Segment Tree – lazy propagation'},
+{day:128, topic:'Binary Indexed Tree – advanced queries'},
+{day:129, topic:'SQL – advanced aggregation & filtering'},
+{day:130, topic:'SQL – nested CTE & subqueries practice'},
+{day:131, topic:'DP – Knapsack variations'},
+{day:132, topic:'DP – Coin change problem'},
+{day:133, topic:'DP – Longest palindromic subsequence'},
+{day:134, topic:'DP – Matrix chain multiplication'},
+{day:135, topic:'DP – Subset sum problem'},
+{day:136, topic:'DP – Minimum path sum in grid'},
+{day:137, topic:'DP – Count ways to reach nth stair'},
+{day:138, topic:'DP – Edit distance advanced'},
+{day:139, topic:'DP – DP + memoization patterns'},
+{day:140, topic:'DP – DP + tabulation patterns'},
+{day:141, topic:'DP – Advanced string DP'},
+{day:142, topic:'DP – Advanced combinatorial DP'},
+{day:143, topic:'Graph – Dijkstra practice problems'},
+{day:144, topic:'Graph – Bellman-Ford problems'},
+{day:145, topic:'Graph – Floyd-Warshall problems'},
+{day:146, topic:'Graph – Minimum spanning tree (Kruskal)'},
+{day:147, topic:'Graph – Minimum spanning tree (Prim)'},
+{day:148, topic:'Graph – Topological sort problems'},
+{day:149, topic:'Graph – Strongly connected components'},
+{day:150, topic:'Graph – Cycle detection in directed graph'},
+{day:151, topic:'Graph – Cycle detection in undirected graph'},
+{day:152, topic:'Graph – Shortest path DAG'},
+{day:153, topic:'Greedy – Activity selection problem'},
+{day:154, topic:'Greedy – Fractional Knapsack'},
+{day:155, topic:'Greedy – Huffman coding'},
+{day:156, topic:'Greedy – Minimum platforms problem'},
+{day:157, topic:'Greedy – Job sequencing with deadlines'},
+{day:158, topic:'Tries – Prefix search & autocomplete'},
+{day:159, topic:'Tries – Word search problems'},
+{day:160, topic:'Tries – Implement dictionary'},
+{day:161, topic:'Segment Tree – Range sum queries'},
+{day:162, topic:'Segment Tree – Range minimum queries'},
+{day:163, topic:'Segment Tree – Range maximum queries'},
+{day:164, topic:'Segment Tree – Lazy propagation'},
+{day:165, topic:'Binary Indexed Tree – Update & query'},
+{day:166, topic:'Binary Indexed Tree – Advanced range queries'},
+{day:167, topic:'SQL – Window functions practice'},
+{day:168, topic:'SQL – ROW_NUMBER, RANK, DENSE_RANK practice'},
+{day:169, topic:'SQL – LEAD, LAG practice'},
+{day:170, topic:'SQL – Complex joins practice'},
+{day:171, topic:'SQL – Nested CTE practice'},
+{day:172, topic:'SQL – Transactions and rollbacks'},
+{day:173, topic:'SQL – ACID properties practice'},
+{day:174, topic:'SQL – Ranking and partitioning queries'},
+{day:175, topic:'SQL – Advanced aggregation queries'},
+{day:176, topic:'SQL – Practice with mock datasets'},
+{day:177, topic:'Mixed – Arrays + Strings'},
+{day:178, topic:'Mixed – Recursion problems'},
+{day:179, topic:'Mixed – Linked List problems'},
+{day:180, topic:'Mixed – Stacks & Queues'},
+{day:181, topic:'Mixed – Trees easy problems'},
+{day:182, topic:'Mixed – Trees medium problems'},
+{day:183, topic:'Mixed – Graph BFS/DFS problems'},
+{day:184, topic:'Mixed – Graph shortest paths'},
+{day:185, topic:'Mixed – Heaps problems'},
+{day:186, topic:'Mixed – DP easy problems'},
+{day:187, topic:'Mixed – DP medium problems'},
+{day:188, topic:'Mixed – DP hard problems'},
+{day:189, topic:'Mixed – Tries problems'},
+{day:190, topic:'Mixed – Segment Tree problems'},
+{day:191, topic:'Mixed – Binary Indexed Tree problems'},
+{day:192, topic:'LeetCode top 100 problems 1'},
+{day:193, topic:'LeetCode top 100 problems 2'},
+{day:194, topic:'LeetCode top 100 problems 3'},
+{day:195, topic:'LeetCode top 100 problems 4'},
+{day:196, topic:'LeetCode top 100 problems 5'},
+{day:197, topic:'LeetCode top 100 problems 6'},
+{day:198, topic:'LeetCode top 100 problems 7'},
+{day:199, topic:'LeetCode top 100 problems 8'},
+{day:200, topic:'LeetCode top 100 problems 9'},
+{day:201, topic:'LeetCode top 100 problems 10'},
+{day:202, topic:'Mock interview – Arrays + Strings'},
+{day:203, topic:'Mock interview – Linked List'},
+{day:204, topic:'Mock interview – Stacks & Queues'},
+{day:205, topic:'Mock interview – Trees'},
+{day:206, topic:'Mock interview – Graphs'},
+{day:207, topic:'Mock interview – DP'},
+{day:208, topic:'Mock interview – Tries & Segment Tree'},
+{day:209, topic:'Mock interview – Binary Indexed Tree'},
+{day:210, topic:'SQL – Mock interview 1'},
+{day:211, topic:'SQL – Mock interview 2'},
+{day:212, topic:'SQL – Mock interview 3'},
+{day:213, topic:'SQL – Mock interview 4'},
+{day:214, topic:'SQL – Mock interview 5'},
+{day:215, topic:'Advanced problems – Mixed DSA + SQL 1'},
+{day:216, topic:'Advanced problems – Mixed DSA + SQL 2'},
+{day:217, topic:'Advanced problems – Mixed DSA + SQL 3'},
+{day:218, topic:'Advanced problems – Mixed DSA + SQL 4'},
+{day:219, topic:'Advanced problems – Mixed DSA + SQL 5'},
+{day:220, topic:'Advanced problems – Mixed DSA + SQL 6'},
+{day:221, topic:'Advanced problems – Mixed DSA + SQL 7'},
+{day:222, topic:'Advanced problems – Mixed DSA + SQL 8'},
+{day:223, topic:'Advanced problems – Mixed DSA + SQL 9'},
+{day:224, topic:'Advanced problems – Mixed DSA + SQL 10'},
+{day:225, topic:'Review weak topics – Arrays & Strings'},
+{day:226, topic:'Review weak topics – Linked List'},
+{day:227, topic:'Review weak topics – Stacks & Queues'},
+{day:228, topic:'Review weak topics – Trees'},
+{day:229, topic:'Review weak topics – Graphs'},
+{day:230, topic:'Review weak topics – DP'},
+{day:231, topic:'Review weak topics – Tries & Segment Tree'},
+{day:232, topic:'Review weak topics – Binary Indexed Tree'},
+{day:233, topic:'Review weak topics – SQL'},
+{day:234, topic:'Contest simulation – 1'},
+{day:235, topic:'Contest simulation – 2'},
+{day:236, topic:'Contest simulation – 3'},
+{day:237, topic:'Contest simulation – 4'},
+{day:238, topic:'Contest simulation – 5'},
+{day:239, topic:'Timed mock interview – 1'},
+{day:240, topic:'Timed mock interview – 2'},
+{day:241, topic:'Timed mock interview – 3'},
+{day:242, topic:'Timed mock interview – 4'},
+{day:243, topic:'Timed mock interview – 5'},
+{day:244, topic:'Advanced review – Graph DP problems'},
+{day:245, topic:'Advanced review – DP on trees'},
+{day:246, topic:'Advanced review – Segment Tree lazy propagation'},
+{day:247, topic:'Advanced review – Binary Indexed Tree range queries'},
+{day:248, topic:'Advanced review – Trie autocomplete problems'},
+{day:249, topic:'LeetCode hard problems – 1'},
+{day:250, topic:'LeetCode hard problems – 2'},
+{day:251, topic:'LeetCode hard problems – 3'},
+{day:252, topic:'LeetCode hard problems – 4'},
+{day:253, topic:'LeetCode hard problems – 5'},
+{day:254, topic:'LeetCode hard problems – 6'},
+{day:255, topic:'LeetCode hard problems – 7'},
+{day:256, topic:'LeetCode hard problems – 8'},
+{day:257, topic:'LeetCode hard problems – 9'},
+{day:258, topic:'LeetCode hard problems – 10'},
+{day:259, topic:'Final review – Arrays & Strings'},
+{day:260, topic:'Final review – Linked List'},
+{day:261, topic:'Final review – Stacks & Queues'},
+{day:262, topic:'Final review – Trees'},
+{day:263, topic:'Final review – Graphs'},
+{day:264, topic:'Final review – DP'},
+{day:265, topic:'Final review – Tries & Segment Tree'},
+{day:266, topic:'Final review – Binary Indexed Tree'},
+{day:267, topic:'Final review – SQL'},
+{day:268, topic:'Comprehensive mock contest 1'},
+{day:269, topic:'Comprehensive mock contest 2'},
+{day:270, topic:'Comprehensive mock contest 3'},
+{day:271, topic:'Comprehensive mock contest 4'},
+{day:272, topic:'Comprehensive mock contest 5'},
+{day:273, topic:'Timed mixed problem set – 1'},
+{day:274, topic:'Timed mixed problem set – 2'},
+{day:275, topic:'Timed mixed problem set – 3'},
+{day:276, topic:'Timed mixed problem set – 4'},
+{day:277, topic:'Timed mixed problem set – 5'},
+{day:278, topic:'Timed mixed problem set – 6'},
+{day:279, topic:'Timed mixed problem set – 7'},
+{day:280, topic:'Timed mixed problem set – 8'},
+{day:281, topic:'Timed mixed problem set – 9'},
+{day:282, topic:'Timed mixed problem set – 10'},
+{day:283, topic:'Final week review – weak topics 1'},
+{day:284, topic:'Final week review – weak topics 2'},
+{day:285, topic:'Final week review – weak topics 3'},
+{day:286, topic:'Final week review – weak topics 4'},
+{day:287, topic:'Final week review – weak topics 5'},
+{day:288, topic:'FAANG mock interview set 1'},
+{day:289, topic:'FAANG mock interview set 2'},
+{day:290, topic:'FAANG mock interview set 3'},
+{day:291, topic:'FAANG mock interview set 4'},
+{day:292, topic:'FAANG mock interview set 5'},
+{day:293, topic:'FAANG mock interview set 6'},
+{day:294, topic:'FAANG mock interview set 7'},
+{day:295, topic:'FAANG mock interview set 8'},
+{day:296, topic:'FAANG mock interview set 9'},
+{day:297, topic:'FAANG mock interview set 10'},
+{day:298, topic:'Final revision – DP & Graphs'},
+{day:299, topic:'Final revision – Trees & Linked Lists'},
+{day:300, topic:'Final revision – Arrays & Strings'},
+{day:301, topic:'Final revision – Stacks & Queues'},
+{day:302, topic:'Final revision – Tries & Segment Tree'},
+{day:303, topic:'Final revision – Binary Indexed Tree'},
+{day:304, topic:'Final revision – SQL basics'},
+{day:305, topic:'Final revision – SQL advanced queries'},
+{day:306, topic:'Final revision – SQL mock interview 1'},
+{day:307, topic:'Final revision – SQL mock interview 2'},
+{day:308, topic:'Final revision – Mixed DSA + SQL problem set 1'},
+{day:309, topic:'Final revision – Mixed DSA + SQL problem set 2'},
+{day:310, topic:'Final revision – Mixed DSA + SQL problem set 3'},
+{day:311, topic:'Final revision – Mixed DSA + SQL problem set 4'},
+{day:312, topic:'Final revision – Mixed DSA + SQL problem set 5'},
+{day:313, topic:'Timed mock – full length 1'},
+{day:314, topic:'Timed mock – full length 2'},
+{day:315, topic:'Timed mock – full length 3'},
+{day:316, topic:'Timed mock – full length 4'},
+{day:317, topic:'Timed mock – full length 5'},
+{day:318, topic:'Top LeetCode problems review 1'},
+{day:319, topic:'Top LeetCode problems review 2'},
+{day:320, topic:'Top LeetCode problems review 3'},
+{day:321, topic:'Top LeetCode problems review 4'},
+{day:322, topic:'Top LeetCode problems review 5'},
+{day:323, topic:'Advanced mixed DSA + SQL 1'},
+{day:324, topic:'Advanced mixed DSA + SQL 2'},
+{day:325, topic:'Advanced mixed DSA + SQL 3'},
+{day:326, topic:'Advanced mixed DSA + SQL 4'},
+{day:327, topic:'Advanced mixed DSA + SQL 5'},
+{day:328, topic:'Final week – mock 1'},
+{day:329, topic:'Final week – mock 2'},
+{day:330, topic:'Final week – mock 3'},
+{day:331, topic:'Final week – mock 4'},
+{day:332, topic:'Final week – mock 5'},
+{day:333, topic:'Final week – mock 6'},
+{day:334, topic:'Final week – mock 7'},
+{day:335, topic:'Final week – mock 8'},
+{day:336, topic:'Final week – mock 9'},
+{day:337, topic:'Final week – mock 10'},
+{day:338, topic:'Final revision – tough problems 1'},
+{day:339, topic:'Final revision – tough problems 2'},
+{day:340, topic:'Final revision – tough problems 3'},
+{day:341, topic:'Final revision – tough problems 4'},
+{day:342, topic:'Final revision – tough problems 5'},
+{day:343, topic:'Final revision – tough problems 6'},
+{day:344, topic:'Final revision – tough problems 7'},
+{day:345, topic:'Final revision – tough problems 8'},
+{day:346, topic:'Final revision – tough problems 9'},
+{day:347, topic:'Final revision – tough problems 10'},
+{day:348, topic:'Mock interview series – final 1'},
+{day:349, topic:'Mock interview series – final 2'},
+{day:350, topic:'Mock interview series – final 3'},
+{day:351, topic:'Mock interview series – final 4'},
+{day:352, topic:'Mock interview series – final 5'},
+{day:353, topic:'Mock interview series – final 6'},
+{day:354, topic:'Mock interview series – final 7'},
+{day:355, topic:'Mock interview series – final 8'},
+{day:356, topic:'Mock interview series – final 9'},
+{day:357, topic:'Mock interview series – final 10'},
+{day:358, topic:'Final consolidation – DSA key patterns 1'},
+{day:359, topic:'Final consolidation – DSA key patterns 2'},
+{day:360, topic:'Final consolidation – DSA key patterns 3'},
+{day:361, topic:'Final consolidation – SQL key queries 1'},
+{day:362, topic:'Final consolidation – SQL key queries 2'},
+{day:363, topic:'Final consolidation – SQL key queries 3'},
+{day:364, topic:'Final full review – Mock contest simulation'},
+{day:365, topic:'Final full review – Ready for FAANG/MAANG interview'}
+
+
+// Continue similarly up to day 365, including:
+// - Mixed DSA problems daily
+// - DP/Graph advanced problems
+// - SQL advanced queries & mock interviews
+// - Review, consolidation, and final mock tests
+// - Focus on FAANG/MAANG pattern problems and timing practice
+
+// Continue pattern until day 365: advanced review, timed mock interviews, final consolidation, and project or SQL + DSA integration problems.
+
+    // ... continue filling all 365 topics here similarly
+];
+
+// Load status from localStorage
+const storedStatus = JSON.parse(localStorage.getItem('topicStatus')) || {};
+
+topics.forEach(t => {
+    t.status = storedStatus[t.day] || 'not-started';
+});
+
+function renderDays() {
+    daysContainer.innerHTML = '';
+    topics.forEach((t) => {
+        const dayDiv = document.createElement('div');
+        dayDiv.classList.add('day');
+        if(t.status === 'completed') dayDiv.classList.add('completed');
+        else if(t.status === 'in-progress') dayDiv.classList.add('in-progress');
+
+        dayDiv.innerHTML = `
+            <span>Day ${t.day}: ${t.topic}</span>
+            <div>
+                <button class="in-progress">In Progress</button>
+                <button class="complete">Complete</button>
+            </div>
+        `;
+
+        dayDiv.querySelector('.in-progress').addEventListener('click', () => {
+            t.status = 'in-progress';
+            saveStatus();
+            updateChart();
+            renderDays();
+        });
+        dayDiv.querySelector('.complete').addEventListener('click', () => {
+            t.status = 'completed';
+            saveStatus();
+            updateChart();
+            renderDays();
+        });
+
+        daysContainer.appendChild(dayDiv);
+    });
+}
+
+function saveStatus() {
+    const statusObj = {};
+    topics.forEach(t => { statusObj[t.day] = t.status; });
+    localStorage.setItem('topicStatus', JSON.stringify(statusObj));
+}
+
+// Chart.js graph
+const ctx = document.getElementById('progressChart').getContext('2d');
+let progressChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Not Started', 'In Progress', 'Completed'],
+        datasets: [{
+            data: [topics.filter(t=>t.status==='not-started').length,
+                   topics.filter(t=>t.status==='in-progress').length,
+                   topics.filter(t=>t.status==='completed').length],
+            backgroundColor: ['#6c757d','#ffc107','#28a745'],
+        }]
+    },
+    options: { responsive: true }
+});
+
+function updateChart() {
+    progressChart.data.datasets[0].data = [
+        topics.filter(t=>t.status==='not-started').length,
+        topics.filter(t=>t.status==='in-progress').length,
+        topics.filter(t=>t.status==='completed').length
+    ];
+    progressChart.update();
+}
+
+// Notification function
+function notifyToday() {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
+
+    const today = new Date();
+    const dayIndex = today.getDayOfYear ? today.getDayOfYear() : Math.min(topics.length, today.getDate());
+    const todayTopic = topics[dayIndex-1];
+
+    if(Notification.permission === 'granted' && todayTopic){
+        new Notification(`Today's Topic`, {body: `${todayTopic.topic}`});
     }
+}
 
-    Promise.all(promises).then(dataUrls=>{
-      const content = dataUrls.map((d,idx)=>({ image: d, width: width, margin:[0,10,0,10], pageBreak: (idx<dataUrls.length-1)?'after':undefined }));
-      const docDefinition = { content: content, pageMargins:[40,60,40,60], footer: function(c,p){return { text: c + ' / ' + p, alignment:'center', fontSize:10}} };
-      pdfMake.createPdf(docDefinition).download('images.pdf');
-    }).catch(err=>{console.error(err);alert('Error reading images')});
-  }
+// Utility to get day of year
+Date.prototype.getDayOfYear = function() {
+    const start = new Date(this.getFullYear(), 0, 0);
+    const diff = this - start + ((start.getTimezoneOffset() - this.getTimezoneOffset()) * 60 * 1000);
+    const oneDay = 1000 * 60 * 60 * 24;
+    return Math.floor(diff / oneDay);
+}
 
-  // Compress Image
-  const qSlider = document.getElementById('quality');
-  const qVal = document.getElementById('qVal');
-  qSlider.addEventListener('input', ()=> qVal.textContent = qSlider.value);
-
-  function compressImage(){
-    const f = document.getElementById('compressInput').files[0];
-    if(!f){alert('Please select an image to compress');return}
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const img = new Image();
-      img.onload = function(){
-        const canvas = document.createElement('canvas');
-        // scale down if large
-        const maxDim = 1600;
-        let w = img.width, h = img.height;
-        if(Math.max(w,h) > maxDim){
-          const ratio = maxDim / Math.max(w,h);
-          w = Math.round(w*ratio); h = Math.round(h*ratio);
-        }
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img,0,0,w,h);
-        const quality = parseFloat(document.getElementById('quality').value) || 0.8;
-        canvas.toBlob(function(blob){
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          const ext = f.type.includes('png')?'.png':'.jpg';
-          a.download = 'compressed' + ext;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-          document.getElementById('compResult').textContent = `Compressed image created. Size: ${(blob.size/1024).toFixed(1)} KB`;
-        }, 'image/jpeg', quality);
-      };
-      img.onerror = ()=> alert('Invalid image file');
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(f);
-  }
-
-  // Word (.docx) to PDF using mammoth + html-to-pdfmake
-  function convertDocxToPdf(){
-    const f = document.getElementById('docxInput').files[0];
-    if(!f){alert('Please select a .docx file');return}
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      const arrayBuffer = ev.target.result;
-      mammoth.convertToHtml({arrayBuffer: arrayBuffer})
-        .then(function(result){
-          const html = result.value; // generated html
-          // convert html to pdfmake format
-          const doc = htmlToPdfmake(html, {window:window});
-          const fontSize = parseInt(document.getElementById('docFont').value || 12);
-          const docDefinition = { content: doc, styles: { normal:{fontSize: fontSize} }, pageMargins:[40,60,40,60], footer: function(c,p){return {text: c + ' / ' + p, alignment:'center', fontSize:10}} };
-          pdfMake.createPdf(docDefinition).download('document.pdf');
-        })
-        .catch(function(err){ console.error(err); alert('Error converting .docx file') });
-    };
-    reader.readAsArrayBuffer(f);
-  }
-
+renderDays();
+updateChart();
+notifyToday();
 </script>
 </body>
 </html>
